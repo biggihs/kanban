@@ -17,14 +17,14 @@ class CodebaseHQAPI {
         $cache_file = $this->cache_dir .'/'. sha1($url);
         if (!file_exists($cache_file) || ((time() - @filemtime($cache_file)) > $timeout)) {
             $process = curl_init($url);
-            curl_setopt($process, CURLOPT_HTTPHEADER, array('Content-Type: application/xml', 'Accept: application/xml'));              
-            curl_setopt($process, CURLOPT_HEADER, 0);           
-            curl_setopt($process, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);                                                                
-            curl_setopt($process, CURLOPT_USERPWD, $this->account .'/'. $this->user_name . ":" . $this->api_key);                                                
-            curl_setopt($process, CURLOPT_TIMEOUT, 30);                                                                         
-            //curl_setopt($process, CURLOPT_POST, 1);                                                                             
-            //curl_setopt($process, CURLOPT_POSTFIELDS, $payloadName);                                                            
-            curl_setopt($process, CURLOPT_RETURNTRANSFER, TRUE);                                                                
+            curl_setopt($process, CURLOPT_HTTPHEADER, array('Content-Type: application/xml', 'Accept: application/xml'));
+            curl_setopt($process, CURLOPT_HEADER, 0);
+            curl_setopt($process, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+            curl_setopt($process, CURLOPT_USERPWD, $this->account .'/'. $this->user_name . ":" . $this->api_key);
+            curl_setopt($process, CURLOPT_TIMEOUT, 30);
+            //curl_setopt($process, CURLOPT_POST, 1);
+            //curl_setopt($process, CURLOPT_POSTFIELDS, $payloadName);
+            curl_setopt($process, CURLOPT_RETURNTRANSFER, TRUE);
             $return = curl_exec($process);
             $f = fopen($cache_file, 'w');
             fwrite($f, $return);
