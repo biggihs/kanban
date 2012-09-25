@@ -28,9 +28,8 @@ Currently, the kanban board will use the first active milestone it can find.
 Contact
 -------
 
-If you want to know more, have questions etc. please contact us at developers@springest.nl
+If you want to know more, have questions etc. please contact me at birgir@transmit.is
 
 Project Status
 -------
-Please note that we don't actively maintain this tool anymore, as we've switched to GitHub and are now using a new Kanban board which is not open-sourced yet.
-Feel free to fork this project and build upon it.
+I am working in my spare time on a fork of this project from springest so it isn't entirely unmaintained. (at least not my fork).
