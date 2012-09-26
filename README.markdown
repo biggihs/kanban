@@ -7,14 +7,20 @@ This is a small project to display your tickets in Codebase ( www.codebasehq.com
 Installation
 ------------
 
-After checking out the code repsitory, you need to copy the settings.example.php to settings.php and edit that file with the appropriate config data. You crrently need to specify 4 configuration options:
+After checking out the code repsitory, you need to copy the settings.example.php to settings.php and edit that file with the appropriate config data. You currently need to specify 3 configuration options:
 
 * /$codebaseAccount/ This is the Codebase account you use. Not your username, by the way.
 * /$codebaseUser/ This is the username, used for authentication with the Codebase API. The user must have adminitration privileges, otherwise the kanban board will not work.
-* /$codebaseApikey/ This is the API Key, also used for authentication.
 * /$codebaseMainProject/ The simple name of the project for which you want to show the kanban board
 
-This should be all the configuration you need.
+There is a sqlite database (user.sqlite) that has the user/password/api_key. 
+The default user/pass is admin/admin, with no api_key.
+
+To create a new user you have to access the db. There you have to insert
+your username, your codebase.api_key and a password-hash.
+
+To create a password-hash for your new user, you have to go to http://localhost/generate_password.php?password=<your.password.here> 
+That page will generate a hash-password for you that you have to insert into the db.
 
 Kanban is just plain PHP and Javascript. Just upload the files to your server and you're done!
 
