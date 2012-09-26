@@ -1,8 +1,9 @@
 <?php
+require_once('isloggedin.php');
 
 $codebaseAccount = 'account';
 $codebaseUser    = 'user';
-$codebaseApikey  = 'apikey';
+$codebaseApikey  = $_SESSION['apikey'];
 $codebaseMainProject = 'project';
 
-$ciUrl = 'http://ci.springest';
+$ciUrl = 'http://localhost';
