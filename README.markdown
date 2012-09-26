@@ -16,6 +16,9 @@ After checking out the code repsitory, you need to copy the settings.example.php
 There is a sqlite database (user.sqlite) that has the user/password/api_key. 
 The default user/pass is admin/admin, with no api_key.
 
+Note :: The user.sqlite.example should be renamed to user.sqlite. I did
+this because I don't want to upload my user.sqlite file with my users.
+
 To create a new user you have to access the db. There you have to insert
 your username, your codebase.api_key and a password-hash.
 
