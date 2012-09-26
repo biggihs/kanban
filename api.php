@@ -1,5 +1,6 @@
 <?php
 
+require_once('isloggedin.php');
 include_once 'settings.php';
 include_once 'codebasehq.inc.php';
 
@@ -40,4 +41,26 @@ if ($what == 'tickets') {
     $status = isset($_GET['s']) ? $_GET['s'] : 'open';
     $tickets = $cb->search_tickets($codebaseMainProject, sprintf('sort:priority status:%s milestone:"%s"', $status, $_GET['q']), $_GET['p']);
     echo json_encode($tickets);
+}
+
+if ($what == 'update_ticket'){
+    $ticket = isset($_GET['ticket_id']) ? $_GET['ticket_id'] : '-1';
+    $status = isset($_GET['status_id']) ? $_GET['status_id'] : '-1';
+    if(($ticket == -1)||($status == -1))
+      json_encode(array('success'=>false));
+    else
+    {
+      $cb->change_ticket_status($codebaseMainProject, $ticket, $status);
+    }
+}
+
+if ($what == 'assign_ticket'){
+    $ticket = isset($_GET['ticket_id']) ? $_GET['ticket_id'] : '-1';
+    $user = isset($_GET['user_id']) ? $_GET['user_id'] : '-1';
+    if(($ticket_id == -1)||($user_id == -1))
+      json_encode(array('success'=>false));
+    else
+    {
+      $cb->change_ticket_assign($codebaseMainProject, $ticket,$user);
+    }
 }

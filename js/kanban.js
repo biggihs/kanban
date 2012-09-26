@@ -8,6 +8,80 @@ var currentMilestone;
 var tickets = [];
 var ciBranches = {};
 
+var category_limits = {
+                        "Accepted" : [3,6],
+                        "In Progress" : [3,6],
+                        "Ready To Deploy" : [1,3]
+                      };
+
+function reloadOverview(){
+  var str = "#status-";
+  jQuery('#overview a').each(function(i,a){
+    var anchor = jQuery(a);
+    var key = anchor.attr('href').replace(str,'');
+    var ticket_count = jQuery('#status-'+key+' .ticket').length;
+    var tmp = anchor.html().split('(')[0];
+    anchor.html(tmp+"("+ticket_count+")");
+  });
+}
+
+function addRatio(){
+    jQuery('.status').each(function(i,j){
+      var count = jQuery(this).find('.ticket').length; 
+      var key = category_limits[jQuery(this).find('h2').last().html()];
+      if (key==undefined)
+        jQuery(this).find('.ratio').html("&nbsp;").attr('style','padding-top:7px;background-color:white;');
+      else
+      {
+        var ratio_count = "<span>("+count+"/"+key[1]+")</span>";
+        var ratio = jQuery(this).find('.ratio');
+        var src = "";
+
+        if(key[0]>count)
+          src = "blue_thumb_right.jpg";
+        else if(key[1]>count)
+          src = "green_thumb_right.jpg";
+        else
+          src = "stop.png";
+
+        ratio.html("<span style='font-size:15px;'>"+ratio_count+"<span><img style='vertical-align:bottom;width:20px;' src='images/"+src+"'/></span></span>");
+      }
+    });
+}
+
+function addDraggableDropable(){
+  jQuery('.ticket').draggable( { containment: "#statuses", 
+                                      helper: "clone"
+                               })
+
+  jQuery('.status').droppable( { accept:".ticket",
+                                 hoverClass:"droppable_selected",
+                                 drop:function(ev,ui,db)
+                                 {
+                                   var container = jQuery(this);
+                                   var status_key = container.find('h2').last().html();
+                                   var count = container.find('.ticket').length;
+                                   if((category_limits[status_key] != undefined)
+                                   &&((category_limits[status_key][1]) < (count+1))) {
+                                     alert('The maximum ammount of tickets in this category is :: '+category_limits[status_key][1]+' !!!');
+                                   }
+                                   else {
+                                     var ticket_id = ui.draggable.context.id.replace('ticket-','');
+                                     var status_id = container.attr('id').replace('status-','');
+                                     var post = {'f':'update_ticket','ticket_id':ticket_id,'status_id':status_id};
+
+                                     $.get('/api.php',post,function (data) {
+                                       container.append(jQuery(ui.draggable).clone());
+                                       jQuery(ui.draggable).remove();
+                                       addRatio();
+                                       reloadOverview();
+                                     });
+
+                                   }
+                                  }
+                               });
+}
+
 function loadTickets(pageNumber, ticketStatus) {
     var ticketUrl = '/api.php?f=tickets&s=' + ticketStatus + '&q=' + escape(currentMilestone.name);
     if (pageNumber > 1) {
@@ -18,30 +92,49 @@ function loadTickets(pageNumber, ticketStatus) {
             tickets.push(ticket);
         });
         processTickets(pageNumber, ticketStatus, data.ticket.length);
+        if (ticketStatus == "open")
+        {
+          addRatio();
+          addDraggableDropable();
+        }
     }, 'json');
 }
 
 function processTickets(pageNumber, ticketStatus, totalTickets) {
     var newTickets = 0;
-    
+
     $.each(tickets, function(i, ticket) {
         if ($('#ticket-' + ticket['ticket-id']).size() == 0) {
             newTickets++;
             addTicket(ticket);
         }
     });
-    
+
     countTickets();
-    
+
     if ((totalTickets == 30) && (newTickets > 0)) {
         loadTickets(pageNumber + 1, ticketStatus);
     }
+
+    jQuery('#'+ticketStatus+' .gravatar').each(function(){
+      var id = jQuery(this).id;
+      jQuery(this).qtip({
+          content: { prerender: true,
+                          text: create_user_assign_list(jQuery(this)),
+                         title: "Assign new user ..."
+                   },
+             show: { delay: 0 },
+             hide: { fixed: true },
+         position: { corner: { target: 'topRight', tooltip: 'topLeft' } },
+            style: { border: { width: 1, color: '#666'} },
+      });
+    });
 }
 
-/* 
- * Parse the date for browser compatibility, see
- * http://stackoverflow.com/questions/4622732/new-date-using-javascript-in-safari
- */
+/***
+  * Parse the date for browser compatibility, see
+  * http://stackoverflow.com/questions/4622732/new-date-using-javascript-in-safari
+ ***/
 function parseDate(input) {
 	var parts = input.match(/(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)(Z|\+|-)((\d+):(\d+))?/);
 	
@@ -72,6 +165,52 @@ function calcTimeAgo(date) {
 	return timeAgo;
 }
 
+function get_gravatar_image(hash,username,id)
+{
+  return $('<img class="'+id+'" src="http://www.gravatar.com/avatar/' + hash + '?s=32" title="' + username + '" />');
+}
+
+function assign_user_ticket(user,ticket){
+  var post = {'f':'assign_ticket','ticket_id':ticket,'user_id':user};
+  $.get('/api.php',post,function (data) {
+    u = user;
+    if(user != "")
+      var img = get_gravatar_image(users[user].hash,users[user]['first-name'],'gravatar');
+    else
+      var img = $('<img class="gravatar" src="/images/Octocat_32.png" title="Assign ticket" />');
+    jQuery('#ticket-'+ticket+' .gravatar').parent().html(img);
+    img.qtip({
+        content: { prerender: true,
+                        text: create_user_assign_list(img),
+                       title: "Assign new user ..."
+                 },
+           show: { delay: 0 },
+           hide: { fixed: true },
+       position: { corner: { target: 'topRight', tooltip: 'topLeft' } },
+          style: { border: { width: 1, color: '#666'} },
+    });
+  });
+}
+
+function create_user_assign_list(the_object){
+    var id = jQuery(the_object.closest('.ticket')).attr('id').replace('ticket-','');
+    var keys = Object.keys(users);
+    var user_list = jQuery('<ul>').attr('class','users_list')
+                                  .attr('style','list-style-type: none;');
+    jQuery(keys).each(function(i,j){
+      user_list.append($('<li onClick="assign_user_ticket('+users[j].id+',' + id + ')" />').attr('style','cursor:pointer;')
+		           .html(
+			               $('<div>').html(
+				               get_gravatar_image(users[j].hash,users[j].username,users[j].id).attr('style','float:left;')
+                                                                                      .add(jQuery("<div>").attr('style','margin-top:5px;')
+                                                                                                          .html(users[j].username)))
+                             .add(jQuery('<div style="clear:both;">'))
+	                  ));
+    });
+    user_list.prepend($('<li style="cursor:pointer;" onClick="assign_user_ticket(\'\',\''+id+'\');"><div><img class="gravatar" style="float:left;" src="/images/Octocat_32.png" title="Assign ticket" /><div style="margin-top:5px;">Octocat</div></div><div style="clear:both;"></div></li>'));
+    return user_list;
+}
+
 function addTicket(ticket) {
     var ticketTypeClass = 'ticket-default';
     var ticketCategory = categories[ticket['category-id']];
@@ -79,8 +218,8 @@ function addTicket(ticket) {
     var ticketId = 'ticket-' + ticket['ticket-id'];
     var gravatarHash = (users[ticket['assignee-id']] !== undefined) ? users[ticket['assignee-id']].hash : '';
     var userName = (users[ticket['assignee-id']] !== undefined) ? users[ticket['assignee-id']]['first-name'] + ' ' + users[ticket['assignee-id']]['last-name'] : '';
-	var ticketSummary = (ticket.summary.length > 50) ? ticket.summary.substr(0, 50) + '...' : ticket.summary;
-	var timeAgo = calcTimeAgo(parseDate(ticket['updated-at']));
+	  var ticketSummary = (ticket.summary.length > 50) ? ticket.summary.substr(0, 50) + '...' : ticket.summary;
+	  var timeAgo = calcTimeAgo(parseDate(ticket['updated-at']));
     var ticketBranches = ciBranches[ticket['ticket-id']] || {};
     var ciStatus = 'unknown';
     $.each(ticketBranches, function(projectName, branch) {
@@ -91,20 +230,25 @@ function addTicket(ticket) {
         }
     });
 	
+    /*
 	// change color for other repo's
 	matches = ticketCategory.match(/^\s*(\w+)\s*[\-|\/]/);
 	if (matches) {
 	    ticketTypeClass = 'ticket-' + matches[1].toLowerCase();
 	}
+ */
 	
 	var bodyDiv = $('<div />').attr('class', 'ticket-body');
     if (gravatarHash != '') {
-        bodyDiv.append($('<img class="gravatar" src="http://www.gravatar.com/avatar/' + gravatarHash + '?s=32" title="' + userName + '" />'));
+	bodyDiv.append($('<div>').html(get_gravatar_image(gravatarHash,userName,'gravatar '+ticket['assignee-id'])));
+    }
+    else{
+        bodyDiv.append($('<img class="gravatar" src="/images/Octocat_32.png" title="Assign ticket" />'));
     }
     bodyDiv
         .append($('<abbr class="age" title="updated '+timeAgo['long']+' ago">'+timeAgo['short']+'</abbr>'))
-        .append($('<a href="https://eduhub.codebasehq.com/projects/www/tickets/' + ticket['ticket-id'] + '" target="_blank" />').attr('class', 'ticket-link').text('#' + ticket['ticket-id']))
-        .append($('<span />').addClass('ci-status').addClass(ciStatus).text(ciStatus == 'unknown' ? 'untested' : ciStatus));
+        .append($('<a href="https://'+account_name+'.codebasehq.com/projects/'+project_name+'/tickets/' + ticket['ticket-id'] + '" target="_blank" />').attr('class', 'ticket-link').text('#' + ticket['ticket-id']))
+        .append($('<span>'+priorities[ticket['priority-id']].name+'</span>'));
 	
 	var div = $('<div />')
 	    .attr('id', ticketId)
@@ -120,16 +264,6 @@ function addTicket(ticket) {
             tipItems += '<li><a href="'+settings.ciUrl+url+'">'+urlparts[1]+'...'+urlparts[2]+'</a></li>';
         });
     });
-	if (tipItems) {
-	    $('.ci-status', bodyDiv).qtip({
-	        content: { text: '<ul>'+tipItems+'</ul>' },
-            show: { delay: 0 },
-            hide: { fixed: true },
-            position: { corner: { target: 'bottomLeft', tooltip: 'topLeft' } },
-            style: { border: { width: 1, color: (ciStatus == 'fail' ? '#900' : (ciStatus == 'ok' ? '#060' : '#666')) } }
-        });
-	}
-	    
     $('#status-' + ticket['status-id']).append(div);
 }
 
@@ -145,71 +279,49 @@ function countTickets() {
     $('#overview').append(overviewList);
 }
 
+
 $(document).ready(function() {
     apiPromises = [];
     apiPromises.push($.get('/api.php?f=statuses', function (data) {
         statuses = data['ticketing-status'];
         $.each(statuses, function(i, status) {
-			var statusBox = $('<div class="status" />').attr('id', 'status-' + status.id).append($('<h2 />').attr('style', 'background-color: ' + status['colour'] ).text(status.name));
-			var target = (status['treat-as-closed'] == 'true') ? '#closed' : '#open';
-			$(target).append(statusBox);
+    			var statusBox = $('<div class="status" />').attr('id', 'status-' + status.id);
+          statusBox = statusBox.append($('<h2 class="ratio"/>').attr('style', 'background-color: #FFFFFF;color:black;'));
+          statusBox = statusBox.append($('<h2 />').attr('style', 'background-color: ' + status['colour'] ).text(status.name));
+			    var target = (status['treat-as-closed'] == 'true') ? '#closed' : '#open';
+			    $(target).append(statusBox);
         });
     }, 'json'));
-    
+
     apiPromises.push($.get('/api.php?f=users', function (data) {
         $.each(data.user, function (i, user) {
             users[user.id] = user;
         });
     }, 'json'));
-    
+
     apiPromises.push($.get('/api.php?f=milestones', function (data) {
         milestones = data['ticketing-milestone'];
         activeMilestones = $.grep(milestones, function(milestone, i) {
             return (milestone.status == 'active');
         });
-        currentMilestone = activeMilestones[1];
+        currentMilestone = activeMilestones[0];
     }, 'json'));
-    
+
     apiPromises.push($.get('/api.php?f=priorities', function (data) {
         rawPriorities = data['ticketing-priority'];
         $.each(rawPriorities, function (i, priority) {
             priorities[priority.id] = priority;
         });
     }, 'json'));
-    
+
     apiPromises.push($.get('/api.php?f=categories', function (data) {
         rawCategories = data['ticketing-category'];
         $.each(rawCategories, function (i, category) {
             categories[category.id] = category.name;
         });
     }, 'json'));
-    
-    if (settings.ciUrl) {
-        var ciPromise = $.Deferred()
-        apiPromises.push(ciPromise);
-        $.ajax({
-            url: settings.ciUrl+'/api.php?/projects',
-            dataType: 'json',
-            error: function() {
-                ciPromise.resolve();
-            },
-            success: function(projects) {
-                var ciPromises = $.map(projects, function (project) {
-                    return $.get(settings.ciUrl+'/api.php?/projects/'+project.name, function(fullProject) {
-                        $.each(fullProject.branches, function(branchName, branch) {
-                            var ticketId = (/^[0-9]+/.exec(branchName) || [null])[0];
-                            if (!ticketId) return;
-                            ciBranches[ticketId] = ciBranches[ticketId] || {};
-                            ciBranches[ticketId][project.name] = branch;
-                        });
-                    });
-                });
-                $.when.apply($, ciPromises).done(function() { ciPromise.resolve(); });
-            }
-        });
-    }
 
     $.when.apply($, apiPromises)
         .done(function(){ loadTickets(1, 'open'); })
-        .done(function(){ loadTickets(1, 'closed'); });
+        .done(function(){ loadTickets(1, 'closed')});
 });
