@@ -15,6 +15,11 @@ a:hover {
 	text-decoration: underline;
 }
 
+/* Drag & Drop */
+
+.droppable_selected{border:1px solid silver}
+
+
 /* overview */
 
 #overview {
@@ -47,7 +52,8 @@ a:hover {
 /* Status lanes and formatting */
 
 .status {
-    overflow: hidden;
+    overflow:visible;
+  /*overflow: hidden;*/
 }
 
 #open {
@@ -78,9 +84,10 @@ a:hover {
 /* tickets */
 .ticket {
 	background-color: #FBF08F;  
-    margin: 0.625em auto;
-    width: 100%;
-    padding: 0em;
+  margin: 0.625em auto;
+  width: 100%;
+  max-width:133px;
+  padding: 0em;
 	position: relative;
 	overflow: hidden;
 }
@@ -121,6 +128,11 @@ a:hover {
 	font-weight: bold;
     text-decoration: none;
 	display: block;
+}
+
+.ratio{
+  padding-top:7px;
+  background-color:white;
 }
 
 .age {

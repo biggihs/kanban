@@ -1,0 +1,36 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Login</title>
+<style>
+body{
+  font-family:Arial, Helvetica, sans-serif;
+  color:#333333;
+  font-size:0.8em;
+}
+p{
+  margin:0px 0px 10px 0px;
+}
+#user, #pass{
+  width:170px;
+}
+#box{
+  width:200px; 
+  margin:100px auto 0px auto; 
+  background:#F0F0F0;
+  padding:15px;
+}
+</style>
+</head>
+<body>
+
+<div id="box">
+	<form action="checklogin.php" method="post">
+    <p><label for="user">Username:</label> <input id="user" name="user" type="text" /></p>
+    <p><label for="pass">Password:</label> <input id="pass" name="pass" type="password" /></p>
+    <p><input type="submit" value="Login" /></p>
+  </form>
+</div>
+</body>
+</html>

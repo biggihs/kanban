@@ -1,8 +1,12 @@
+<?php
+  require_once('isloggedin.php');
+?>
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Kanban</title>
+    <title>Brandregard - Kanban</title>
     <script src="js/jquery.min.js"></script>
+    <script src="js/jquery-ui-1.8.23.custom.min.js"></script>
     <script src="js/jquery.qtip.min.js" type="text/javascript"></script>
     <script src="js/kanban.js"></script>
     <link rel="stylesheet" type="text/css" href="css/screen.css" />
@@ -10,8 +14,9 @@
         <?
         include_once 'settings.php';
         $jsSettings = array('ciUrl' => $ciUrl);
+        echo "project_name = '$codebaseMainProject';\n";
+        echo "account_name = '$codebaseAccount';\n";
         ?>
-        var settings = <?=json_encode($jsSettings);?>;
     </script>
 </head>
 <body>
