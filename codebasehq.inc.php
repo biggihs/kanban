@@ -33,6 +33,7 @@ class CodebaseHQAPI {
       } else {
         $return = file_get_contents($cache_file);
       }
+      return $return;
     }
 
     function _get_request($full_path, $timeout = 300) {
@@ -63,14 +64,16 @@ class CodebaseHQAPI {
     }
     
     function _perform_request($full_path, $timeout = 300,$payload=false,$send=false) {
-        if(!$send)
-          $content = $this->_get_request($full_path, $timeout);
-        else
-        {
+      if(!$send)
+      {
+//          $content = $this->_get_request($full_path, $timeout);
+          return $this->_parse_request($this->_get_request($full_path,$timeout));
+      }
+      else
+      {
           $content = $this->_send_request($full_path, $payload, $timeout);
           return $content;
-        }
-        return $this->_parse_request($this->_get_request($full_path));
+      }
     }
     
     function get_statuses($project) {
@@ -98,8 +101,50 @@ class CodebaseHQAPI {
         if ($page > 1) {
             $params .= '&page='. $page;
         }
-        return $this->_perform_request(sprintf('/%s/tickets?%s', $project, $params));        
+        return $this->_perform_request(sprintf('/%s/tickets?%s', $project, $params));
     }
+
+    function get_current_user_id($project,$api_key)
+    {
+      if(!$_SESSION['current_user_id'])
+      {
+        $users = $this->_perform_request(sprintf('/users', $project));
+        $id = -1;
+        foreach($users->user as $user)
+        {
+          $a = (array)$user;
+          if($a['api-key'] == $_SESSION['apikey'])
+          {
+            $id = $a['id'];
+            $_SESSION['current_user_id'] = $id;
+            break;
+          }
+        }
+        return $id;
+      }
+      else
+      {
+        return $_SESSION['current_user_id'];
+      }
+    }
+
+    function create_new_ticket($project,$summary,$description,$ticket_type,$assignee_id,$category_id,$priority_id,$status_id,$milestone_id)
+    {
+      $payload = array(
+            'ticket[summary]'=>$summary,
+        #'ticket[description]'=>"<![CDATA[$description]]",
+        'ticket[description]'=>"<![CDATA[$description]]",
+        'ticket[ticket_type]'=>$ticket_type,
+        'ticket[reporter_id]'=>$this->get_current_user_id($project,$api_key),
+        'ticket[assignee_id]'=>$assignee_id,
+        'ticket[category_id]'=>$category_id,
+        'ticket[priority_id]'=>$priority_id,
+          'ticket[status_id]'=>$status_id,
+       'ticket[milestone_id]'=>$milestone_id,
+      );
+      return $this->_perform_request(sprintf('/%s/tickets', $project), 86400,$payload ,true);
+    }
+
 
     function change_ticket_status($project, $ticket, $status)
     {

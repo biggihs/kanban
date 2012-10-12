@@ -18,6 +18,10 @@ a:hover {
 /* Drag & Drop */
 
 .droppable_selected{border:1px solid silver}
+.ui-draggable-dragging
+{
+  z-index:10000;
+}
 
 
 /* overview */
@@ -56,27 +60,38 @@ a:hover {
   /*overflow: hidden;*/
 }
 
-#open {
+#spacer
+{
+  border-left:1px solid silver;
+  padding-left:0px;
+  padding-right:0px;
+  margin-top:55px;
+  height:1000px;
+}
+
+#open , #closed{
     padding-left: 0.5%;
 }
 
-#open .status {
-    float: left;
-    width: 10%;
+#open .status ,#closed .status{
+  float: left;
+/*  width: 10%;*/
 	padding: 0 0.5%;
 	min-height: 450px;
 }
 
+/*
 #closed .status {
-    clear: both;
-    padding: 0 0.5%;
+  clear: both;
+  padding: 0 0.5%;
 }
+*/
 
 .status h2 {
-    color: #fff;
+  color: #fff;
 	padding: 0.25em 0.5em;
-    margin: 1em 0;
-    text-align: center;
+  margin: 1em 0;
+  text-align: center;
 	font-size: 14px;
 	background-color: #e5e5e5;
 }
@@ -104,22 +119,23 @@ a:hover {
   background-color: #dae29e;
 }
 /* end custom ticket colors */
-
+/*
 #closed .status .ticket {
-    float: left;
+  float: left;
 	margin: 0 0.5% 0.625em;
 	width: 10%;
 }
+*/
 
 .ticket h3 {
-    margin: 5px;
+  margin: 5px;
 	font-size: 0.75em;
 	min-height: 3.75em;
 }
 
 .ticket-body {
-    position: relative;
-    font-family: Monaco, "Lucida Console", "Courier New", monospace;
+  position: relative;
+  font-family: Monaco, "Lucida Console", "Courier New", monospace;
 	font-size: 0.625em;
 	margin: 5px;
 }
@@ -160,3 +176,57 @@ img.gravatar {
     margin: 0;
     padding: 0;
 }
+
+/* -- new ticket -- */
+#new_ticket select{
+  width:80%;
+}
+
+#new_ticket .properties{
+  border:1px solid silver;
+}
+
+#new_ticket .property{
+  float:left;
+  width:45%;
+  padding-left:5px;
+  padding-top:5px;
+}
+
+#new_ticket .assignee{
+  padding-left:5px;
+  padding-top:5px;
+  padding-bottom:5px;
+}
+
+#new_ticket .assignee .assignee_property{
+  float:left;
+  border:1px solid silver;
+  min-width:40%;
+  padding-left:5px;
+  padding-top:5px;
+}
+
+#new_ticket .assignee .image{
+  float:left;
+  margin-bottom:5px;
+}
+
+#new_ticket .assignee .name{
+  float:left;
+  padding:5px 10px 0px 10px;
+}
+
+#new_ticket .button{
+  float:left;
+  margin-top:10px;
+}
+
+#new_ticket .error_message{
+  text-align: center;
+  padding-top: 5px;
+  color: red; 
+  font-weight: bold; 
+  display: none;
+}
+

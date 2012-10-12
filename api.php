@@ -39,8 +39,33 @@ if ($what == 'users') {
 
 if ($what == 'tickets') {
     $status = isset($_GET['s']) ? $_GET['s'] : 'open';
-    $tickets = $cb->search_tickets($codebaseMainProject, sprintf('sort:priority status:%s milestone:"%s"', $status, $_GET['q']), $_GET['p']);
+    $tickets = $cb->search_tickets($codebaseMainProject, sprintf('sort:priority status:%s milestone:%s', $status, $_GET['q']), $_GET['p']);
     echo json_encode($tickets);
+}
+
+if ($what == 'create_ticket'){
+    $summary       = $_GET['summary'];
+    $description   = $_GET['description'];
+    $ticket_type   = $_GET['ticket_type'];
+    $assignee_id   = $_GET['assignee_id'];
+    $category_id   = $_GET['category_id'];
+    $priority_id   = $_GET['priority_id'];
+    $status_id     = $_GET['status_id'];
+    $milestone_id  = $_GET['milestone_id'];
+
+    //I want to figure out who this user is. Not parse the reporter_id.
+//    $user_id =$cb->get_current_user_id($codebaseMainProject,$api_key);
+
+    $resp = $cb->create_new_ticket( $codebaseMainProject,
+                                    $summary,
+                                    $description,
+                                    $ticket_type,
+                                    $assignee_id,
+                                    $category_id,
+                                    $priority_id,
+                                    $status_id,
+                                    $milestone_id);
+    echo json_encode($resp);
 }
 
 if ($what == 'update_ticket'){

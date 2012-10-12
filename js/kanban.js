@@ -30,7 +30,13 @@ function addRatio(){
       var count = jQuery(this).find('.ticket').length; 
       var key = category_limits[jQuery(this).find('h2').last().html()];
       if (key==undefined)
-        jQuery(this).find('.ratio').html("&nbsp;").attr('style','padding-top:7px;background-color:white;');
+        if(i==0)
+        {
+          jQuery(this).find('.ratio').html("<img id='create_new_ticket' style='vertical-align:bottom;width:20px;' src='images/new.png' title='Create new ticket' />").attr('style','padding-top:3px;background-color:white;');
+          jQuery('#create_new_ticket').click(function(){jQuery('#new_ticket').dialog({modal:true,width:'500px'});});
+        }
+        else
+          jQuery(this).find('.ratio').html("&nbsp;").attr('style','padding-top:7px;background-color:white;');
       else
       {
         var ratio_count = "<span>("+count+"/"+key[1]+")</span>";
@@ -50,12 +56,16 @@ function addRatio(){
 }
 
 function addDraggableDropable(){
-  jQuery('.ticket').draggable( { containment: "#statuses", 
-                                      helper: "clone"
-                               })
+  jQuery('#open .ticket').draggable( 
+                                    { 
+                                      containment: "#body", 
+                                           helper: "clone"
+                                    }
+                                   );
 
-  jQuery('.status').droppable( { accept:".ticket",
-                                 hoverClass:"droppable_selected",
+  jQuery('#open .status').droppable( {
+                               accept:".ticket",
+                           hoverClass:"droppable_selected",
                                  drop:function(ev,ui,db)
                                  {
                                    var container = jQuery(this);
@@ -75,6 +85,7 @@ function addDraggableDropable(){
                                        jQuery(ui.draggable).remove();
                                        addRatio();
                                        reloadOverview();
+
                                      });
 
                                    }
@@ -88,6 +99,11 @@ function loadTickets(pageNumber, ticketStatus) {
         ticketUrl = ticketUrl + '&p=' + pageNumber;
     }
     $.get(ticketUrl, function (data) {
+
+        //If there are no tickets of this type, then return.
+        if(data.ticket == undefined)
+          return; 
+
         $.each(data.ticket, function(i, ticket) {
             tickets.push(ticket);
         });
@@ -116,7 +132,7 @@ function processTickets(pageNumber, ticketStatus, totalTickets) {
         loadTickets(pageNumber + 1, ticketStatus);
     }
 
-    jQuery('#'+ticketStatus+' .gravatar').each(function(){
+    jQuery('#open#'+ticketStatus+' .gravatar').each(function(){
       var id = jQuery(this).id;
       jQuery(this).qtip({
           content: { prerender: true,
@@ -190,6 +206,44 @@ function assign_user_ticket(user,ticket){
           style: { border: { width: 1, color: '#666'} },
     });
   });
+}
+
+function add_assignee_to_new_ticket(user_id)
+{
+  if(user_id == "")
+  {
+    jQuery('#new_ticket #assignee_id').val("");
+    var img = '<img class="gravatar" src="/images/Octocat_32.png" title="Assign ticket" />';
+    var name = 'No one is assigned';
+    jQuery('#new_ticket #assignee_new_name').html(name);
+    jQuery('#new_ticket .image').html(img);
+  }
+  else
+  {
+    jQuery('#new_ticket #assignee_id').val(user_id);
+    var img = get_gravatar_image(users[user_id].hash,users[user_id]['first-name'],'gravatar');
+    var name = users[user_id]["first-name"] + " " + users[user_id]["last-name"];
+    jQuery('#new_ticket #assignee_new_name').html(name);
+    jQuery('#new_ticket .image').html(img);
+  }
+}
+
+function create_user_assign_new_list(){
+    var keys = Object.keys(users);
+    var user_list = jQuery('<ul>').attr('class','users_list')
+                                  .attr('style','list-style-type: none;');
+    jQuery(keys).each(function(i,j){
+      user_list.append($('<li onClick="add_assignee_to_new_ticket(\''+users[j].id+'\')" />').attr('style','cursor:pointer;')
+		           .html(
+			               $('<div>').html(
+				               get_gravatar_image(users[j].hash,users[j].username,users[j].id).attr('style','float:left;')
+                                                                                      .add(jQuery("<div>").attr('style','margin-top:5px;')
+                                                                                                          .html(users[j].username)))
+                             .add(jQuery('<div style="clear:both;">'))
+	                  ));
+    });
+    user_list.prepend($('<li style="cursor:pointer;" onClick="add_assignee_to_new_ticket(\'\')"><div><img class="gravatar" style="float:left;" src="/images/Octocat_32.png" title="Assign ticket" /><div style="margin-top:5px;">Octocat</div></div><div style="clear:both;"></div></li>'));
+    return user_list;
 }
 
 function create_user_assign_list(the_object){
@@ -301,7 +355,12 @@ $(document).ready(function() {
 
     apiPromises.push($.get('/api.php?f=milestones', function (data) {
         milestones = data['ticketing-milestone'];
+        //Fix, if you only have one milestone.
+        if(!Array.isArray(milestones))
+          milestones = [milestones];
+
         activeMilestones = $.grep(milestones, function(milestone, i) {
+          
             return (milestone.status == 'active');
         });
         currentMilestone = activeMilestones[0];
@@ -323,5 +382,43 @@ $(document).ready(function() {
 
     $.when.apply($, apiPromises)
         .done(function(){ loadTickets(1, 'open'); })
-        .done(function(){ loadTickets(1, 'closed')});
+        .done(function(){ loadTickets(1, 'closed')})
+        .done(function(){
+                          //stuff to do after everything has been loaded (the api calls have been made)
+                          //Fill in the data from codebase into the new_ticket form (ids for categories etc.)
+                          jQuery("#milestone_id").val(currentMilestone.id);
+                          var category_list = jQuery('#new_ticket #category_id');
+                          jQuery(Object.keys(categories)).each(function(i,j){
+                                                            category_list.append(jQuery('<option>').attr('value',j).html(categories[j]));
+                                                         })
+                          var priority_list = jQuery('#new_ticket #priority_id');
+                          jQuery(Object.keys(priorities)).each(function(i,j){
+                                                            var option = jQuery('<option>').attr('value',j).html(priorities[j]["name"]);
+                                                            if(priorities[j]["default"] == "true")
+                                                              option.attr('selected','selected');
+                                                            priority_list.append(option);
+
+                                                         })
+                          var status_list = jQuery('#new_ticket #status_id');
+                          jQuery(Object.keys(statuses)).each(function(i,j){
+                                                            if(statuses[j]["treat-as-closed"] != false)
+                                                            {
+                                                                var option = jQuery('<option>').attr('value',statuses[j]["id"]).html(statuses[j]["name"]);
+                                                                if(statuses[j]["order"] == 1)
+                                                                  option.attr('selected','selected');
+                                                                status_list.append(option);
+                                                            }
+                                                         })
+
+                          jQuery("#assignee_select").qtip({
+                                         content: { prerender: true,
+                                                         text: create_user_assign_new_list(),
+                                                        title: "Assign user ..."
+                                                   },
+                                            show: { delay: 0 },
+                                            hide: { fixed: true },
+                                        position: { corner: { target: 'topRight', tooltip: 'topLeft' } },
+                                           style: { border: { width: 1, color: '#666'} },
+                                            });
+                        });
 });
