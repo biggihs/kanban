@@ -1,0 +1,10 @@
+<FilesMatch "\.(htaccess|htpasswd|sqlite|db)$">
+ Order Allow,Deny
+ Deny from all
+</FilesMatch>
+
+# disable directory browsing
+Options All -Indexes
+
+php_value session.cookie_lifetime 0
+php_value session.gc_maxlifetime 28800
