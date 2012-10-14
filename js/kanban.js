@@ -95,19 +95,27 @@ function addDraggableDropable(){
 
 function loadTickets(pageNumber, ticketStatus) {
     var ticketUrl = '/api.php?f=tickets&s=' + ticketStatus + '&q=' + escape(currentMilestone.name);
+/*
+ *  The Codebase.php has been modified to get all the pages
     if (pageNumber > 1) {
         ticketUrl = ticketUrl + '&p=' + pageNumber;
     }
+*/
     $.get(ticketUrl, function (data) {
 
         //If there are no tickets of this type, then return.
         if(data.ticket == undefined)
           return; 
 
-        $.each(data.ticket, function(i, ticket) {
+        if(data.ticket.length == undefined) //there is only one ticket obj. Not a ticket array.
+          tickets.push(data.ticket);
+        else
+          $.each(data.ticket, function(i, ticket) {
             tickets.push(ticket);
-        });
+          });
+
         processTickets(pageNumber, ticketStatus, data.ticket.length);
+
         if (ticketStatus == "open")
         {
           addRatio();

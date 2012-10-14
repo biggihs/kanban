@@ -36,20 +36,57 @@ class CodebaseHQAPI {
       return $return;
     }
 
-    function _get_request($full_path, $timeout = 300) {
+    function _get_request($full_path, $timeout = 300,$many_pages = false){
         $url = $this->base_url() . $full_path;
         $cache_file = $this->cache_dir .'/'. sha1($url);
         if (!file_exists($cache_file) || ((time() - @filemtime($cache_file)) > $timeout)) {
-            $process = curl_init($url);
-            curl_setopt($process, CURLOPT_HTTPHEADER, array('Content-Type: application/xml', 'Accept: application/xml'));
-            curl_setopt($process, CURLOPT_HEADER, 0);
-            curl_setopt($process, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-            curl_setopt($process, CURLOPT_USERPWD, $this->account .'/'. $this->user_name . ":" . $this->api_key);
-            curl_setopt($process, CURLOPT_TIMEOUT, 30);
-            //curl_setopt($process, CURLOPT_POST, 1);
-            //curl_setopt($process, CURLOPT_POSTFIELDS, $payloadName);
-            curl_setopt($process, CURLOPT_RETURNTRANSFER, TRUE);
-            $return = curl_exec($process);
+            $return = "";
+            if(strpos($url,'?'))
+              $url_with_page_key = $url . "&page=PAGENUMBER";
+            else
+              $url_with_page_key = $url . "?page=PAGENUMBER";
+            for($i=1;$i<=10;$i++) //get maximum 10 pages
+            {
+                $url_with_page = str_replace("PAGENUMBER",$i,$url_with_page_key);
+                $process = curl_init($url_with_page);
+                curl_setopt($process, CURLOPT_HTTPHEADER, array('Content-Type: application/xml', 'Accept: application/xml'));
+                curl_setopt($process, CURLOPT_HEADER, 0);
+                curl_setopt($process, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+                curl_setopt($process, CURLOPT_USERPWD, $this->account .'/'. $this->user_name . ":" . $this->api_key);
+                curl_setopt($process, CURLOPT_TIMEOUT, 30);
+                //curl_setopt($process, CURLOPT_POST, 1);
+                //curl_setopt($process, CURLOPT_POSTFIELDS, $payloadName);
+                curl_setopt($process, CURLOPT_RETURNTRANSFER, TRUE);
+                $content = curl_exec($process);
+                $response = curl_getinfo($process);
+
+                if($response["http_code"] == 404)
+                  break; //There are no more pages if there is a 404 response
+                elseif($response["http_code"] == 200)
+                {
+                  if(!$many_pages)
+                  {
+                    $return = simplexml_load_string($content);
+                    break;
+                  }
+                  else
+                  {
+                    $xml = simplexml_load_string($content);
+                    if($i == 1)
+                      $return = $xml;
+                    else
+                    {
+                      foreach($xml->ticket as $ticket)
+                      {
+                        $node = $return->addChild($ticket->getName());
+                        foreach($ticket->children() as $child)
+                          $node->addChild($child->getName(),$child);
+                      }
+                    }
+                  }
+                }
+            }
+
             $f = fopen($cache_file, 'w');
             fwrite($f, $return);
             fclose($f);
@@ -63,11 +100,11 @@ class CodebaseHQAPI {
         return simplexml_load_string($content);
     }
     
-    function _perform_request($full_path, $timeout = 300,$payload=false,$send=false) {
+    function _perform_request($full_path, $timeout = 300,$payload=false,$send=false,$many_pages=false){
       if(!$send)
       {
-//          $content = $this->_get_request($full_path, $timeout);
-          return $this->_parse_request($this->_get_request($full_path,$timeout));
+          //$content = $this->_get_request($full_path, $timeout);
+          return $this->_get_request($full_path,$timeout,$many_pages);
       }
       else
       {
@@ -96,12 +133,9 @@ class CodebaseHQAPI {
         return $this->_perform_request(sprintf('/%s/assignments', $project), 86400);
     }
 
-    function search_tickets($project, $query, $page = 1) {
+    function search_tickets($project, $query) {
         $params = 'query='. urlencode($query);
-        if ($page > 1) {
-            $params .= '&page='. $page;
-        }
-        return $this->_perform_request(sprintf('/%s/tickets?%s', $project, $params));
+        return $this->_perform_request(sprintf('/%s/tickets?%s', $project, $params),86400,false,false,true);
     }
 
     function get_current_user_id($project,$api_key)
