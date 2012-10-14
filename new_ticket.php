@@ -108,19 +108,23 @@
                    var input = jQuery(j);
                    params[input.attr('id')] = input.val();
                 });
-        jQuery.get({url:'api.php',
+        jQuery.ajax({url:'api.php',
                    data:params,
                 success:function(data)
                         {
-                           console.log('success');
-                           d = data;
-                           console.log(d);
-                        },
-                  error:function(data)
-                        {
-                          console.log('error');
-                          d = data;
-                          console.log(d);
+                            var ticket = JSON.parse(data);
+                            if(ticket.error == undefined)
+                            {
+                               addTicket(ticket);
+                               jQuery('#new_ticket').dialog('close');
+                               var key = '#ticket-'+ticket['ticket-id'];
+                               jQuery(key).fadeOut('fast');
+                               jQuery(key).fadeIn('slow');
+                            }
+                            else
+                            {
+                               alert(ticket.error);
+                            }
                         }
                    });
       });

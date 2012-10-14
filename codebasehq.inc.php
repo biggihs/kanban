@@ -95,11 +95,11 @@ class CodebaseHQAPI {
         }
         return $return;
     }
-    
+
     function _parse_request($content) {
         return simplexml_load_string($content);
     }
-    
+
     function _perform_request($full_path, $timeout = 300,$payload=false,$send=false,$many_pages=false){
       if(!$send)
       {
@@ -109,7 +109,7 @@ class CodebaseHQAPI {
       else
       {
           $content = $this->_send_request($full_path, $payload, $timeout);
-          return $content;
+          return $this->_parse_request($content);
       }
     }
     
