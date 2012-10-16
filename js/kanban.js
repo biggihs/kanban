@@ -9,8 +9,8 @@ var tickets = [];
 var ciBranches = {};
 
 var category_limits = {
-                        "Accepted" : [3,6],
-                        "In Progress" : [3,6],
+                        "Accepted" : [2,4],
+                        "In Progress" : [2,4],
                         "Ready To Deploy" : [1,3]
                       };
 
@@ -421,7 +421,7 @@ $(document).ready(function() {
                           jQuery("#assignee_select").qtip({
                                          content: { prerender: true,
                                                          text: create_user_assign_new_list(),
-                                                        title: "Assign user ..."
+                                                        title: "Assign user to ticket ..."
                                                    },
                                             show: { delay: 0 },
                                             hide: { fixed: true },
