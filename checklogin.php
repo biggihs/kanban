@@ -19,7 +19,7 @@ $result = pg_query($db,$query);
 
 echo "result => $result";
 
-$rows = $result->fetchAll();
+$rows = pg_fetch_array($result);
 if (count($rows) > 0) {
 	 //If user and pass match any of the defined users
   $_SESSION['loggedin'] = true;
