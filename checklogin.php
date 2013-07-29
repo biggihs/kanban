@@ -17,6 +17,8 @@ $db = pg_connection();
 $query = "SELECT COUNT(*) AS count, api_key FROM users WHERE username = '$user' AND password = '$hashpass' GROUP BY api_key";
 $result = pg_query($db,$query);
 
+echo "result => $result";
+
 $rows = $result->fetchAll();
 if (count($rows) > 0) {
 	 //If user and pass match any of the defined users
