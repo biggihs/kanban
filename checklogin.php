@@ -1,4 +1,5 @@
 <?php
+require_once('utils.php');
 //Start session
 session_start();
 ini_set("display_errors","1");
