@@ -32,6 +32,5 @@
   </div>
 
   <?php include('new_ticket.php'); ?>
-
 </body>
 </html>

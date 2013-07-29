@@ -17,13 +17,11 @@ $db = pg_connection();
 $query = "SELECT COUNT(*) AS count, api_key FROM users WHERE username = '$user' AND password = '$hashpass' GROUP BY api_key";
 $result = pg_query($db,$query);
 
-echo "result => $result";
-
 $rows = pg_fetch_array($result);
 if (count($rows) > 0) {
 	 //If user and pass match any of the defined users
   $_SESSION['loggedin'] = true;
-  $_SESSION['apikey'] = $rows[0]["api_key"];
+  $_SESSION['apikey'] = $rows["api_key"];
 	 header("Location: index.php");
 };
  
