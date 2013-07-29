@@ -9,8 +9,13 @@ $pass = $_POST['pass'];
 $hashpass = md5($pass);
 
 //Users defined in a SQLite database
-$db = new PDO('sqlite:users.sqlite');
-$result = $db->query("SELECT COUNT(*) AS count,api_key FROM users WHERE username = '$user' AND password = '$hashpass'");
+//$db = new PDO('sqlite:users.sqlite');
+//$result = $db->query("SELECT COUNT(*) AS count,api_key FROM users WHERE username = '$user' AND password = '$hashpass'");
+
+$db = pg_connection();
+$query = "SELECT COUNT(*) AS count,api_key FROM users WHERE username = '$user' AND password = '$hashpass'";
+$result = pg_query($db,$query);
+
 $rows = $result->fetchAll();
 if (count($rows) > 0) {
 	 //If user and pass match any of the defined users

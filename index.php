@@ -1,5 +1,6 @@
 <?php
   require_once('isloggedin.php');
+  require_once('utils.php')
 ?>
 <!DOCTYPE html>
 <html>
