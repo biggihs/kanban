@@ -15,6 +15,8 @@ $hashpass = md5($pass);
 
 $db = pg_connection();
 $query = "SELECT COUNT(*) AS count,api_key FROM users WHERE username = '$user' AND password = '$hashpass' GROUP_BY api_key";
+echo "THE QUERY";
+echo $query;
 $result = pg_query($db,$query);
 
 $rows = $result->fetchAll();
