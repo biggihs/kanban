@@ -95,6 +95,7 @@ function addDraggableDropable(){
 
 function loadTickets(pageNumber, ticketStatus) {
     var ticketUrl = '/api.php?f=tickets&s=' + ticketStatus + '&q=' + escape(currentMilestone.name);
+    console.debug(ticketUrl)
 /*
  *  The Codebase.php has been modified to get all the pages
     if (pageNumber > 1) {
@@ -102,7 +103,6 @@ function loadTickets(pageNumber, ticketStatus) {
     }
 */
     $.get(ticketUrl, function (data) {
-
         //If there are no tickets of this type, then return.
         if(data.ticket == undefined)
           return; 
@@ -368,10 +368,42 @@ $(document).ready(function() {
           milestones = [milestones];
 
         activeMilestones = $.grep(milestones, function(milestone, i) {
-          
             return (milestone.status == 'active');
         });
-        currentMilestone = activeMilestones[0];
+        currentMilestone = activeMilestones[current_milestone_id];
+
+        //Set the milestone selector
+        var selection = $('#milestone_selection select')
+
+        var top_level_milestones = $(activeMilestones).map(function(i,o){
+          if(typeof( o["parent-id"]) !== "string")
+            return [[i,o.name,
+                      $(activeMilestones).map(function(j,k){
+                        if(k["parent-id"] == o.id)
+                          return [[j,k.name]]
+                      })
+                   ]];
+        })
+
+        $(top_level_milestones).each(function(i,o){
+          if(o[0] == current_milestone_id)
+            var option = $('<option selected>')
+          else
+            var option = $('<option>')
+          option.html(o[1])
+          option.attr('milestone-numb',o[0])
+          selection.append(option)
+          $(o[2]).each(function(j,k){
+            if(k[0] == current_milestone_id)
+              var option = $('<option selected>')
+            else
+              var option = $('<option>')
+            option.html(" -- "+k[1])
+            option.attr('milestone-numb',k[0])
+            selection.append(option)
+          })
+        })
+
     }, 'json'));
 
     apiPromises.push($.get('/api.php?f=priorities', function (data) {
