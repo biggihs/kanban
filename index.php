@@ -28,6 +28,11 @@
           echo "current_milestone_id = 0;\n";
         else
           echo "current_milestone_id = ".$_SESSION['milestone-numb'].";\n";
+
+        echo "if(current_milestone_id == -1){";
+        echo "current_milestone_id = 0;";
+        echo "all_milestones_selected = true;";
+        echo "}else{all_milestones_selected = false}";
         ?>
     </script>
 </head>

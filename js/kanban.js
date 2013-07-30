@@ -5,6 +5,7 @@ var priorities = {};
 var users = {};
 var activeMilestones;
 var currentMilestone;
+var top_level_milestones;
 var tickets = [];
 var ciBranches = {};
 
@@ -94,8 +95,22 @@ function addDraggableDropable(){
 }
 
 function loadTickets(pageNumber, ticketStatus) {
-    var ticketUrl = '/api.php?f=tickets&s=' + ticketStatus + '&q=' + escape(currentMilestone.name);
-    console.debug(ticketUrl)
+
+    var ticketUrl;
+
+    //Dirty hack to select all milestones (then the currentMilestone is the first)
+    if(all_milestones_selected)
+      ticketUrl = '/api.php?f=tickets&s=' + ticketStatus;
+    else
+      ticketUrl = '/api.php?f=tickets&s=' + ticketStatus + '&q=' + escape(currentMilestone.name);
+
+    /*
+    if(typeof(currentMilestone["parent-id"]) === "string")
+      $(top_level_milestones).each(function(i,o){
+        if(o[3] == currentMilestone["parent-id"])
+          ticketUrl += "&q2=" + o[1]
+      })
+*/
 /*
  *  The Codebase.php has been modified to get all the pages
     if (pageNumber > 1) {
@@ -308,7 +323,7 @@ function addTicket(ticket) {
         bodyDiv.append($('<img class="gravatar" src="/images/Octocat_32.png" title="Assign ticket" />'));
     }
     bodyDiv
-        .append($('<abbr class="age" title="updated '+timeAgo['long']+' ago">'+timeAgo['short']+'</abbr>'))
+        .append($('<label class="age" title="updated '+timeAgo['long']+' ago">'+timeAgo['short']+'</label>'))
         .append($('<a href="https://'+account_name+'.codebasehq.com/projects/'+project_name+'/tickets/' + ticket['ticket-id'] + '" target="_blank" />').attr('class', 'ticket-link').text('#' + ticket['ticket-id']))
         .append($('<span>'+priorities[ticket['priority-id']].name+'</span>'));
 	
@@ -375,13 +390,15 @@ $(document).ready(function() {
         //Set the milestone selector
         var selection = $('#milestone_selection select')
 
-        var top_level_milestones = $(activeMilestones).map(function(i,o){
+        top_level_milestones = $(activeMilestones).map(function(i,o){
           if(typeof( o["parent-id"]) !== "string")
-            return [[i,o.name,
+            return [[ i,
+                      o.name,
                       $(activeMilestones).map(function(j,k){
                         if(k["parent-id"] == o.id)
                           return [[j,k.name]]
-                      })
+                      }),
+                      o.id
                    ]];
         })
 
@@ -403,6 +420,18 @@ $(document).ready(function() {
             selection.append(option)
           })
         })
+
+        if(all_milestones_selected)
+        {
+          var option = $('<option selected milestone-numb="-1">')
+          selection.find(':selected').removeAttr('selected')
+        }
+        else
+          var option = $('<option milestone-numb="-1">')
+
+        option.html('ALL MILESTONES')
+
+        selection.append(option);
 
     }, 'json'));
 
