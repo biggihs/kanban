@@ -18,12 +18,17 @@ $query = "SELECT COUNT(*) AS count, api_key FROM users WHERE username = '$user' 
 $result = pg_query($db,$query);
 
 $rows = pg_fetch_array($result);
+
 if (count($rows) > 0) {
 	 //If user and pass match any of the defined users
   $_SESSION['loggedin'] = true;
   $_SESSION['apikey'] = $rows["api_key"];
-	 header("Location: index.php");
-};
+  $_SESSION['user'] = $user;
+  header("Location: index.php");
+}
+else{
+  session_destroy();
+}
  
 //If the session variable is not true, exit to exit page.
 if(!$_SESSION['loggedin']){

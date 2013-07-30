@@ -2,7 +2,7 @@
 require_once('isloggedin.php');
 
 $codebaseAccount = 'transmit';
-$codebaseUser    = 'birgir';
+$codebaseUser    = $_SESSION['user'];
 $codebaseApikey  = $_SESSION['apikey'];
 $codebaseMainProject = 'londoncru';
 
