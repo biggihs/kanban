@@ -140,7 +140,11 @@ function loadTickets(pageNumber, ticketStatus) {
         {
           addRatio();
           addDraggableDropable();
+
+          //count the tickets
+          $('#milestone_selection label').html($('.ticket').length)
         }
+
     }, 'json');
 }
 

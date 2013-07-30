@@ -40,6 +40,7 @@
     <div id="overview"></div>
     <div id="milestone_selection">
       <h4>Current Milestone : <select></select></h4>
+      <h5>Ticket Count : <label></label></h5>
     </div>
     <div id="statuses">
 		<div id="open"></div>
