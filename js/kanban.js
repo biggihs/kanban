@@ -123,10 +123,14 @@ function loadTickets(pageNumber, ticketStatus) {
           return; 
 
         if(data.ticket.length == undefined) //there is only one ticket obj. Not a ticket array.
-          tickets.push(data.ticket);
+        {
+          if((data.ticket.milestone.id == currentMilestone.id)||(all_milestones_selected))
+            tickets.push(data.ticket);
+        }
         else
           $.each(data.ticket, function(i, ticket) {
-            tickets.push(ticket);
+            if((ticket.milestone.id == currentMilestone.id)||(all_milestones_selected))
+              tickets.push(ticket);
           });
 
         processTickets(pageNumber, ticketStatus, data.ticket.length);
