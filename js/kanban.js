@@ -124,15 +124,16 @@ function loadTickets(pageNumber, ticketStatus) {
 
         if(data.ticket.length == undefined) //there is only one ticket obj. Not a ticket array.
         {
-          if((data.ticket.milestone.id == currentMilestone.id)||(all_milestones_selected))
+          if((data.ticket["milestone-id"] == currentMilestone.id)||(all_milestones_selected))
             tickets.push(data.ticket);
         }
         else
+        {
           $.each(data.ticket, function(i, ticket) {
-            if((ticket.milestone.id == currentMilestone.id)||(all_milestones_selected))
+            if((ticket["milestone-id"] == currentMilestone.id)||(all_milestones_selected))
               tickets.push(ticket);
           });
-
+        }
         processTickets(pageNumber, ticketStatus, data.ticket.length);
 
         if (ticketStatus == "open")
