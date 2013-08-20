@@ -22,9 +22,9 @@ p{
   padding:15px;
 }
 </style>
+<script type="text/javascript" src="js/jquery-1.8.0.min.js"></script>
 </head>
 <body>
-
 <div id="box">
 	<form action="checklogin.php" method="post">
     <p><label for="user">Username:</label> <input id="user" name="user" type="text" /></p>
@@ -32,5 +32,10 @@ p{
     <p><input type="submit" value="Login" /></p>
   </form>
 </div>
+<script>
+  $(document).ready(function(){
+    $('form').submit()
+  })
+</script>
 </body>
 </html>
